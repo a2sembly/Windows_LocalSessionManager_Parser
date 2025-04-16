@@ -2,10 +2,16 @@
 import argparse
 from terminal_services_lsm_parser import TerminalServicesLSMParser
 from terminal_services_cax_parser import TerminalServicesCAXParser
+from PowerShell import PowerShellParser
+from System import SystemParser
+from WinRM import WinRMParser
 
 PARSERS = {
     'ts_lsm': TerminalServicesLSMParser,
     'ts_cax': TerminalServicesCAXParser,
+    'powershell': PowerShellParser,
+    'system': SystemParser,
+    'winrm': WinRMParser
     # 다른 이벤트 파서는 여기에 추가
 }
 

@@ -1,18 +1,24 @@
-# terminal_services_lsm_parser.py
 import Evtx.Evtx as evtx
 import xml.etree.ElementTree as ET
 import csv
+import re
 from common import Common
-# Microsoft-Windows-TerminalServices-RDPClient%4Operational.evtx
-class TerminalServicesCAXParser:
+
+class PowerShellParser:
     DESC_MAP = {
-        '1024': 'RDP OutBound 연결 시도 (1024)',
-        '1026': 'RDP OutBound 연결 끊김 (1026)'
+        '400': 'PowerShell 명령 실행'
     }
 
     def __init__(self, evtx_path: str, csv_path: str):
         self.evtx_path = evtx_path
         self.csv_path = csv_path
+
+    def extract_command_line(self, text: str) -> str:
+        """
+        HostApplication= 과 EngineVersion= 사이의 문자열 추출
+        """
+        match = re.search(r"HostApplication=((.|\n)*?)EngineVersion", text)
+        return match.group(1).strip() if match else '-'
 
     def parse(self):
         with evtx.Evtx(self.evtx_path) as log, open(self.csv_path, 'w', newline='', encoding='utf-8') as csvfile:
@@ -31,26 +37,26 @@ class TerminalServicesCAXParser:
                     continue
 
                 timestamp = Common.parse_timestamp(root, ns)
-                ud = root.find('.//ev:UserData/ud:EventXML', ns)
                 hostname = Common.safe_find_text(root, './/ev:System/ev:Computer', ns)
-                # EventData 파싱
-                evdata = Common.parse_event_data(root, ns)
-                name = evdata.get('Name', '-')
-                addr = evdata.get('Value', '-')
-                ip = addr if Common.is_ip(addr) else '-'
-                # details에 Name과 Value만 넣기
-                details = f"Name: {name}, Value: {addr}"
 
-                # EventData 전체는 별도 컬럼에 직렬화
+                # EventData 전체 추출
+                evdata = Common.parse_event_data(root, ns)
                 evdata_str = '; '.join(f"{k}={v}" for k, v in evdata.items()) or '-'
+
+                # 마지막 <Data>에서 명령문 추출
+                data_nodes = root.findall('.//ev:EventData/ev:Data', ns)
+                command_detail = '-'
+                if data_nodes:
+                    raw_text = data_nodes[-1].text.strip() if data_nodes[-1].text else ''
+                    command_detail = self.extract_command_line(raw_text)
 
                 writer.writerow([
                     timestamp,
                     'Logged',
                     hostname or '-',
-                    ip,
+                    '-',  # extip는 없음
                     self.DESC_MAP[evt_id],
-                    details,
-                    evdata_str,
+                    command_detail,
+                    '-',
                     self.evtx_path.split('\\')[-1]
                 ])

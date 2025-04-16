@@ -34,10 +34,11 @@ class TerminalServicesLSMParser:
                 evt_id = Common.safe_find_text(root, './/ev:System/ev:EventID', ns)
                 if evt_id not in self.DESC_MAP:
                     continue
-
+                
+                user = addr = sessionid = extip = details = sourceid = reasoncode = hostname = ""
                 timestamp = Common.parse_timestamp(root, ns)
                 ud = root.find('.//ev:UserData/ud:EventXML', ns)
-                user = addr = sessionid = extip = details = sourceid = reasoncode = ""
+                hostname = Common.safe_find_text(root, './/ev:System/ev:Computer', ns)
                 if evt_id in ['21','22','23','24','25']:
                     user      = Common.safe_find_text(ud, 'ud:User', ns)
                     addr      = Common.safe_find_text(ud, 'ud:Address', ns)
@@ -55,7 +56,7 @@ class TerminalServicesLSMParser:
                     
 
                 writer.writerow([
-                    timestamp, 'Logged', '-', extip,
+                    timestamp, 'Logged', hostname or '-', extip,
                     self.DESC_MAP[evt_id], details, '-',
                     self.evtx_path.split('\\')[-1]
                 ])

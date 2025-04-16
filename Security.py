@@ -1,14 +1,21 @@
-# terminal_services_lsm_parser.py
 import Evtx.Evtx as evtx
 import xml.etree.ElementTree as ET
 import csv
 from common import Common
-# Microsoft-Windows-TerminalServices-RDPClient%4Operational.evtx
-class TerminalServicesCAXParser:
+
+class SecurityParser:
+    """
+    Windows Security 로그 파서 (Event ID 4624/4625 - 로그인 성공/실패)
+    """
+
     DESC_MAP = {
-        '1024': 'RDP OutBound 연결 시도 (1024)',
-        '1026': 'RDP OutBound 연결 끊김 (1026)'
+        '4624': '로그온 성공',
+        '4625': '로그온 실패',
+        '4634': '로그오프',
+        '4648': '명시적 로그온'
     }
+
+    ALLOWED_LOGON_TYPES = {'3', '7', '10'}
 
     def __init__(self, evtx_path: str, csv_path: str):
         self.evtx_path = evtx_path
@@ -30,25 +37,28 @@ class TerminalServicesCAXParser:
                 if evt_id not in self.DESC_MAP:
                     continue
 
-                timestamp = Common.parse_timestamp(root, ns)
-                ud = root.find('.//ev:UserData/ud:EventXML', ns)
-                hostname = Common.safe_find_text(root, './/ev:System/ev:Computer', ns)
-                # EventData 파싱
                 evdata = Common.parse_event_data(root, ns)
-                name = evdata.get('Name', '-')
-                addr = evdata.get('Value', '-')
-                ip = addr if Common.is_ip(addr) else '-'
-                # details에 Name과 Value만 넣기
-                details = f"Name: {name}, Value: {addr}"
+                logon_type = evdata.get('LogonType', '-')
+                if logon_type not in self.ALLOWED_LOGON_TYPES:
+                    continue
 
-                # EventData 전체는 별도 컬럼에 직렬화
+                timestamp = Common.parse_timestamp(root, ns)
+                hostname = Common.safe_find_text(root, './/ev:System/ev:Computer', ns)
+
+                username = evdata.get('TargetUserName', '-')
+                logon_id = evdata.get('TargetLogonId', '-')
+                ip_address = evdata.get('IpAddress', '-') if Common.is_ip(evdata.get('IpAddress', '')) else ''
+                process = evdata.get('ProcessName', '-')
+                port= evdata.get('IpPort','-')
+
+                details = f"User: {username}, LogonType: {logon_type}, Address: {ip_address}:{port}, LogonID: {logon_id}, Process: {process}"
                 evdata_str = '; '.join(f"{k}={v}" for k, v in evdata.items()) or '-'
 
                 writer.writerow([
                     timestamp,
                     'Logged',
                     hostname or '-',
-                    ip,
+                    ip_address if ip_address else '-',
                     self.DESC_MAP[evt_id],
                     details,
                     evdata_str,
