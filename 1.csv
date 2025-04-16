@@ -1,8 +1,0 @@
-Timestamp,Logged,Hostname,ExtIP,Description,Details,-,SourceFile
-2025-04-10 11:58:07,Logged,-,-,세션 로그온 성공,"User: -, IP: -, Session ID: -",-,Microsoft-Windows-TerminalServices-LocalSessionManager%4Operational.evtx
-2025-04-10 11:58:07,Logged,-,-,셀 시작 알림,"User: -, IP: -, Session ID: -",-,Microsoft-Windows-TerminalServices-LocalSessionManager%4Operational.evtx
-2025-04-14 12:40:45,Logged,-,-,세션 로그온 성공,"User: -, IP: -, Session ID: -",-,Microsoft-Windows-TerminalServices-LocalSessionManager%4Operational.evtx
-2025-04-14 12:40:46,Logged,-,-,셀 시작 알림,"User: -, IP: -, Session ID: -",-,Microsoft-Windows-TerminalServices-LocalSessionManager%4Operational.evtx
-2025-04-15 00:00:14,Logged,-,-,세션 로그오프프,"User: -, IP: -, Session ID: -",-,Microsoft-Windows-TerminalServices-LocalSessionManager%4Operational.evtx
-2025-04-16 11:24:16,Logged,-,-,세션 로그온 성공,"User: -, IP: -, Session ID: -",-,Microsoft-Windows-TerminalServices-LocalSessionManager%4Operational.evtx
-2025-04-16 11:24:16,Logged,-,-,셀 시작 알림,"User: -, IP: -, Session ID: -",-,Microsoft-Windows-TerminalServices-LocalSessionManager%4Operational.evtx
